@@ -7,7 +7,6 @@ import {
   Filter, 
   Download, 
   Plus, 
-  MoreHorizontal, 
   Eye, 
   Edit, 
   Trash2,
@@ -15,9 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  User,
-  AlertTriangle,
-  Building2,
   Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -96,7 +92,7 @@ export default function QueriesPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Query Management</h1>
+            <h1 className="text-2xl font-bold text-text-main mb-1">Query Management</h1>
             <p className="text-text-muted text-sm">Monitor and resolve operational customer inquiries.</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -119,28 +115,28 @@ export default function QueriesPage() {
               <input 
                 type="text" 
                 placeholder="Search by ID, Customer Name, or Agent..." 
-                className="w-full bg-bg-dark border border-border-subtle rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-brand-primary/50"
+                className="w-full bg-bg-dark border border-border-subtle rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-main focus:outline-none focus:border-brand-primary/50"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
             <div className="flex items-center space-x-3 overflow-x-auto pb-2 lg:pb-0">
-              <select className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50">
+              <select className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50">
                 <option>All Statuses</option>
                 <option>Open</option>
                 <option>In Progress</option>
                 <option>Resolved</option>
                 <option>Escalated</option>
               </select>
-              <select className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50">
+              <select className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50">
                 <option>All Priorities</option>
                 <option>Critical</option>
                 <option>High</option>
                 <option>Medium</option>
                 <option>Low</option>
               </select>
-              <select className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50">
+              <select className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50">
                 <option>All Departments</option>
                 <option>IT Support</option>
                 <option>Housekeeping</option>
@@ -160,7 +156,7 @@ export default function QueriesPage() {
               <thead>
                 <tr className="bg-bg-dark text-text-muted text-[10px] uppercase tracking-widest font-bold border-b border-border-subtle">
                   <th className="px-6 py-4">
-                    <div className="flex items-center space-x-2 cursor-pointer hover:text-white transition-colors">
+                    <div className="flex items-center space-x-2 cursor-pointer hover:text-brand-primary transition-colors">
                       <span>Query ID</span>
                       <ArrowUpDown className="w-3 h-3" />
                     </div>
@@ -176,14 +172,14 @@ export default function QueriesPage() {
               </thead>
               <tbody className="divide-y divide-border-subtle">
                 {queries.map((query) => (
-                  <tr key={query.id} className="hover:bg-white/5 transition-all group text-sm">
+                  <tr key={query.id} className="hover:bg-brand-primary/5 transition-all group text-sm">
                     <td className="px-6 py-4">
                       <Link href={`/admin/queries/${query.id}`} className="font-bold text-brand-primary hover:underline">
                         {query.id}
                       </Link>
                       <p className="text-[10px] text-text-muted mt-0.5">{query.date}</p>
                     </td>
-                    <td className="px-6 py-4 text-white font-medium">{query.customer}</td>
+                    <td className="px-6 py-4 text-text-main font-medium">{query.customer}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2 text-text-muted">
                         <Tag className="w-3 h-3" />
@@ -204,7 +200,7 @@ export default function QueriesPage() {
                           {query.assigned.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div>
-                          <p className="text-white text-xs font-bold">{query.assigned}</p>
+                          <p className="text-text-main text-xs font-bold">{query.assigned}</p>
                           <p className="text-[10px] text-text-muted">{query.dept}</p>
                         </div>
                       </div>
@@ -212,7 +208,7 @@ export default function QueriesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <Clock className={`w-3 h-3 ${query.status === 'Overdue' ? 'text-danger' : 'text-text-muted'}`} />
-                        <span className={`font-mono text-xs ${query.status === 'Overdue' ? 'text-danger font-bold' : 'text-white'}`}>
+                        <span className={`font-mono text-xs ${query.status === 'Overdue' ? 'text-danger font-bold' : 'text-text-main'}`}>
                           {query.sla}
                         </span>
                       </div>
@@ -224,7 +220,7 @@ export default function QueriesPage() {
                           query.status === 'Escalated' ? 'bg-danger' :
                           query.status === 'In Progress' ? 'bg-info' : 'bg-warning'
                         }`} />
-                        <span className="text-xs font-bold text-white uppercase">{query.status}</span>
+                        <span className="text-xs font-bold text-text-main uppercase">{query.status}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -251,7 +247,7 @@ export default function QueriesPage() {
           {/* Pagination */}
           <div className="p-4 border-t border-border-subtle flex items-center justify-between bg-bg-dark/30">
             <p className="text-[10px] text-text-muted uppercase font-bold tracking-widest">
-              Showing <span className="text-white">1-5</span> of <span className="text-white">124</span> Entries
+              Showing <span className="text-text-main">1-5</span> of <span className="text-text-main">124</span> Entries
             </p>
             <div className="flex items-center space-x-2">
               <Button variant="secondary" size="sm" className="h-8" disabled>
@@ -262,7 +258,7 @@ export default function QueriesPage() {
                   <button 
                     key={n}
                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                      n === 1 ? 'bg-brand-primary text-white shadow-sm' : 'text-text-muted hover:text-white hover:bg-white/5'
+                      n === 1 ? 'bg-brand-primary text-white shadow-sm' : 'text-text-muted hover:text-brand-primary hover:bg-brand-primary/5'
                     }`}
                   >
                     {n}

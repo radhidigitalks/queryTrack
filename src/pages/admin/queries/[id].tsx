@@ -12,25 +12,21 @@ import {
   History, 
   Send, 
   Paperclip, 
-  MoreVertical,
   Clock,
   CheckCircle2,
-  AlertTriangle,
-  UserPlus,
   ArrowUpCircle,
   MessageSquare,
   FileText,
   Lock,
-  Eye,
-  Edit,
   Activity,
   Download,
-  Building2
+  Building2,
+  UserPlus,
+  Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
 
 export default function QueryDetailPage() {
   const router = useRouter();
@@ -44,7 +40,7 @@ export default function QueryDetailPage() {
         <title>Query Details - {id} | Admin Panel</title>
       </Head>
 
-      <div className="space-y-6">
+      <div className="space-y-6 text-text-main">
         {/* Top Navigation & Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
@@ -58,7 +54,7 @@ export default function QueryDetailPage() {
             </Button>
             <div>
               <div className="flex items-center space-x-3">
-                <h1 className="text-xl font-bold text-white tracking-tight">{id || 'QRY-2026-001'}</h1>
+                <h1 className="text-xl font-bold text-text-main tracking-tight">{id || 'QRY-2026-001'}</h1>
                 <Badge variant="info">In Progress</Badge>
                 <Badge variant="danger">Critical</Badge>
               </div>
@@ -75,7 +71,7 @@ export default function QueryDetailPage() {
               <ArrowUpCircle className="w-3.5 h-3.5" />
               <span>Escalate</span>
             </Button>
-            <Button className="space-x-2 h-9 text-xs bg-success hover:bg-success/90">
+            <Button className="space-x-2 h-9 text-xs bg-success hover:bg-success/90 text-white">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Mark Resolved</span>
             </Button>
@@ -87,7 +83,7 @@ export default function QueryDetailPage() {
           <div className="xl:col-span-3 space-y-6">
             <Card className="p-0 overflow-hidden">
               <div className="p-4 border-b border-border-subtle bg-bg-dark/30">
-                <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center">
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-widest flex items-center">
                   <User className="w-3.5 h-3.5 mr-2 text-brand-primary" />
                   Customer Profile
                 </h3>
@@ -98,7 +94,7 @@ export default function QueryDetailPage() {
                     AW
                   </div>
                   <div>
-                    <h4 className="text-white font-bold">Alexander Wright</h4>
+                    <h4 className="text-text-main font-bold">Alexander Wright</h4>
                     <p className="text-[10px] text-brand-primary font-bold uppercase tracking-wider">VIP Member</p>
                   </div>
                 </div>
@@ -106,15 +102,15 @@ export default function QueryDetailPage() {
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3 text-xs">
                     <Phone className="w-3.5 h-3.5 text-text-muted" />
-                    <span className="text-white">+1 (555) 123-4567</span>
+                    <span className="text-text-main">+1 (555) 123-4567</span>
                   </div>
                   <div className="flex items-center space-x-3 text-xs">
                     <Mail className="w-3.5 h-3.5 text-text-muted" />
-                    <span className="text-white">a.wright@email.com</span>
+                    <span className="text-text-main">a.wright@email.com</span>
                   </div>
                   <div className="flex items-center space-x-3 text-xs">
                     <MapPin className="w-3.5 h-3.5 text-text-muted" />
-                    <span className="text-white">Room 402 • Main Wing</span>
+                    <span className="text-text-main">Room 402 • Main Wing</span>
                   </div>
                 </div>
               </div>
@@ -122,7 +118,7 @@ export default function QueryDetailPage() {
 
             <Card className="p-0 overflow-hidden">
               <div className="p-4 border-b border-border-subtle bg-bg-dark/30">
-                <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center">
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-widest flex items-center">
                   <History className="w-3.5 h-3.5 mr-2 text-brand-primary" />
                   Query Context
                 </h3>
@@ -130,11 +126,11 @@ export default function QueryDetailPage() {
               <div className="p-5 space-y-4">
                 <div>
                   <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Category</label>
-                  <span className="text-xs text-white font-medium">Technical Support</span>
+                  <span className="text-xs text-text-main font-medium">Technical Support</span>
                 </div>
                 <div>
                   <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Assigned Department</label>
-                  <span className="text-xs text-white font-medium">IT Support Services</span>
+                  <span className="text-xs text-text-main font-medium">IT Support Services</span>
                 </div>
                 <div>
                   <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Source</label>
@@ -169,7 +165,7 @@ export default function QueryDetailPage() {
                     className={`px-6 py-4 text-[10px] font-bold uppercase tracking-widest flex items-center space-x-2 border-b-2 transition-all ${
                       activeTab === tab.id 
                         ? 'border-brand-primary text-brand-primary' 
-                        : 'border-transparent text-text-muted hover:text-white'
+                        : 'border-transparent text-text-muted hover:text-brand-primary'
                     }`}
                   >
                     <tab.icon className="w-3.5 h-3.5" />
@@ -185,10 +181,10 @@ export default function QueryDetailPage() {
                     {/* Customer Message */}
                     <div className="flex flex-col items-start max-w-[85%]">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-xs font-bold text-white">Alexander Wright</span>
+                        <span className="text-xs font-bold text-text-main">Alexander Wright</span>
                         <span className="text-[10px] text-text-muted">10:30 AM</span>
                       </div>
-                      <div className="bg-bg-dark border border-border-subtle p-4 rounded-xl rounded-tl-none text-sm text-white leading-relaxed">
+                      <div className="bg-bg-dark border border-border-subtle p-4 rounded-xl rounded-tl-none text-sm text-text-main leading-relaxed">
                         Hello, I'm having issues with the Wi-Fi in room 402. It keeps disconnecting every few minutes. I need a stable connection for a video call in an hour.
                       </div>
                     </div>
@@ -207,10 +203,10 @@ export default function QueryDetailPage() {
                     {/* Attachment Example */}
                     <div className="flex flex-col items-start max-w-[85%]">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-xs font-bold text-white">Alexander Wright</span>
+                        <span className="text-xs font-bold text-text-main">Alexander Wright</span>
                         <span className="text-[10px] text-text-muted">10:38 AM</span>
                       </div>
-                      <div className="bg-bg-dark border border-border-subtle p-4 rounded-xl rounded-tl-none text-sm text-white leading-relaxed">
+                      <div className="bg-bg-dark border border-border-subtle p-4 rounded-xl rounded-tl-none text-sm text-text-main leading-relaxed">
                         I've already tried that. Here is the error screenshot.
                       </div>
                       <div className="mt-2 flex items-center p-3 bg-bg-dark border border-border-subtle rounded-lg group cursor-pointer hover:border-brand-primary transition-all">
@@ -218,7 +214,7 @@ export default function QueryDetailPage() {
                           <FileText className="w-4 h-4 text-brand-primary" />
                         </div>
                         <div className="flex-1 mr-4">
-                          <p className="text-xs font-bold text-white">wifi-error-402.png</p>
+                          <p className="text-xs font-bold text-text-main">wifi-error-402.png</p>
                           <p className="text-[10px] text-text-muted uppercase font-bold">1.2 MB • PNG Image</p>
                         </div>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100">
@@ -236,7 +232,7 @@ export default function QueryDetailPage() {
                         <span className="text-xs font-bold text-warning uppercase">Internal Note</span>
                         <span className="text-[10px] text-text-muted">10:45 AM</span>
                       </div>
-                      <p className="text-sm text-white">Checked floor 4 AP logs. Multiple disconnects seen on AP-04-W. Might need a physical reset.</p>
+                      <p className="text-sm text-text-main">Checked floor 4 AP logs. Multiple disconnects seen on AP-04-W. Might need a physical reset.</p>
                       <p className="text-[10px] text-text-muted mt-2 font-bold">— David Chen</p>
                     </div>
                   </div>
@@ -253,7 +249,7 @@ export default function QueryDetailPage() {
                     ].map((log, i) => (
                       <div key={i} className="flex items-center justify-between text-xs border-b border-border-subtle pb-4 last:border-0">
                         <div>
-                          <p className="text-white font-bold uppercase tracking-tight">{log.action}</p>
+                          <p className="text-text-main font-bold uppercase tracking-tight">{log.action}</p>
                           <p className="text-text-muted">by {log.user}</p>
                         </div>
                         <span className="font-mono text-text-muted">{log.time}</span>
@@ -267,16 +263,16 @@ export default function QueryDetailPage() {
               <div className="p-4 border-t border-border-subtle bg-bg-dark/50">
                 <div className="relative">
                   <textarea 
-                    className="w-full bg-bg-dark border border-border-subtle rounded-xl p-4 pr-32 text-sm text-white focus:outline-none focus:border-brand-primary/50 transition-all min-h-[120px] resize-none"
+                    className="w-full bg-bg-dark border border-border-subtle rounded-xl p-4 pr-32 text-sm text-text-main focus:outline-none focus:border-brand-primary/50 transition-all min-h-[120px] resize-none"
                     placeholder={activeTab === 'notes' ? "Type internal note..." : "Type your reply to customer..."}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                   />
                   <div className="absolute right-4 bottom-4 flex items-center space-x-2">
-                    <button className="p-2 text-text-muted hover:text-white transition-colors">
+                    <button className="p-2 text-text-muted hover:text-brand-primary transition-colors">
                       <Paperclip className="w-5 h-5" />
                     </button>
-                    <Button className="h-10 px-6 space-x-2">
+                    <Button className="h-10 px-6 space-x-2 text-white">
                       <span className="text-xs uppercase font-bold">Send</span>
                       <Send className="w-4 h-4" />
                     </Button>
@@ -290,7 +286,7 @@ export default function QueryDetailPage() {
           <div className="xl:col-span-3 space-y-6">
             <Card className="p-0 overflow-hidden">
               <div className="p-4 border-b border-border-subtle bg-bg-dark/30">
-                <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center">
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-widest flex items-center">
                   <Activity className="w-3.5 h-3.5 mr-2 text-brand-primary" />
                   SLA PERFORMANCE
                 </h3>
@@ -299,7 +295,7 @@ export default function QueryDetailPage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] text-text-muted uppercase font-bold">Resolution Target</span>
-                    <span className="text-[10px] text-white font-bold">2 Hours</span>
+                    <span className="text-[10px] text-text-main font-bold">2 Hours</span>
                   </div>
                   <div className="w-full bg-bg-dark h-1.5 rounded-full overflow-hidden border border-border-subtle">
                     <div className="h-full bg-brand-primary rounded-full" style={{ width: '65%' }} />
@@ -313,7 +309,7 @@ export default function QueryDetailPage() {
                   </div>
                   <div className="p-3 bg-bg-dark border border-border-subtle rounded-lg">
                     <p className="text-[9px] text-text-muted uppercase font-bold mb-1">Escalation</p>
-                    <p className="text-sm font-bold text-white">L1</p>
+                    <p className="text-sm font-bold text-text-main">L1</p>
                   </div>
                 </div>
               </div>
@@ -321,7 +317,7 @@ export default function QueryDetailPage() {
 
             <Card className="p-0 overflow-hidden">
               <div className="p-4 border-b border-border-subtle bg-bg-dark/30">
-                <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center">
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-widest flex items-center">
                   <Building2 className="w-3.5 h-3.5 mr-2 text-brand-primary" />
                   TEAM ASSIGNMENT
                 </h3>
@@ -335,7 +331,7 @@ export default function QueryDetailPage() {
                       alt="Agent"
                     />
                     <div>
-                      <p className="text-xs font-bold text-white">David Chen</p>
+                      <p className="text-xs font-bold text-text-main">David Chen</p>
                       <p className="text-[9px] text-text-muted uppercase font-bold">Primary Agent</p>
                     </div>
                   </div>
@@ -355,8 +351,8 @@ export default function QueryDetailPage() {
                         alt="Collab"
                       />
                     ))}
-                    <button className="w-8 h-8 rounded-lg bg-bg-dark border-2 border-bg-card border-dashed flex items-center justify-center text-text-muted hover:text-white transition-colors">
-                      <Plus className="w-4 h-4" />
+                    <button className="w-8 h-8 rounded-lg bg-bg-dark border-2 border-bg-card border-dashed flex items-center justify-center text-text-muted hover:text-text-main transition-colors">
+                      <PlusIcon className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -369,7 +365,7 @@ export default function QueryDetailPage() {
   );
 }
 
-function Plus(props: any) {
+function PlusIcon(props: any) {
   return (
     <svg
       {...props}

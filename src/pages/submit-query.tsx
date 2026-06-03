@@ -8,7 +8,6 @@ import {
   Phone, 
   Mail, 
   Tag, 
-  AlertTriangle, 
   FileText, 
   Upload,
   Search
@@ -23,7 +22,6 @@ export default function PublicQueryForm() {
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [category, setCategory] = useState('Technical Support');
-  const [priority, setPriority] = useState('Low - Normal inquiry');
   const [description, setDescription] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,7 +38,7 @@ export default function PublicQueryForm() {
       mobile: mobile,
       email: email,
       category: category,
-      priority: priority.split(' - ')[0], // just 'Low', 'Medium', etc.
+      priority: 'Low', // Set default priority to Low
       description: description,
       status: 'Logged & Assigned',
       assignedTo: 'Support Queue',
@@ -133,40 +131,21 @@ export default function PublicQueryForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-muted">Query Category</label>
-              <div className="relative">
-                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <select 
-                  className="w-full bg-bg-dark border border-border-subtle rounded-lg pl-11 pr-4 py-2.5 text-text-main appearance-none focus:outline-none focus:border-brand-primary/50 transition-all text-sm"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                >
-                  <option>Technical Support</option>
-                  <option>Billing & Payments</option>
-                  <option>Service Feedback</option>
-                  <option>Maintenance Request</option>
-                  <option>Other</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-muted">Priority Level</label>
-              <div className="relative">
-                <AlertTriangle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <select 
-                  className="w-full bg-bg-dark border border-border-subtle rounded-lg pl-11 pr-4 py-2.5 text-text-main appearance-none focus:outline-none focus:border-brand-primary/50 transition-all text-sm"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                >
-                  <option>Low - Normal inquiry</option>
-                  <option>Medium - Needs attention</option>
-                  <option>High - Urgent matter</option>
-                  <option>Critical - Immediate action</option>
-                </select>
-              </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text-muted">Query Category</label>
+            <div className="relative">
+              <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+              <select 
+                className="w-full bg-bg-dark border border-border-subtle rounded-lg pl-11 pr-4 py-2.5 text-text-main appearance-none focus:outline-none focus:border-brand-primary/50 transition-all text-sm"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option>Technical Support</option>
+                <option>Billing & Payments</option>
+                <option>Service Feedback</option>
+                <option>Maintenance Request</option>
+                <option>Other</option>
+              </select>
             </div>
           </div>
 
@@ -198,7 +177,7 @@ export default function PublicQueryForm() {
           <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
             <Button 
               type="submit" 
-              className="w-full sm:flex-1 h-12" 
+              className="w-full sm:flex-1 h-12 text-white" 
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Query'}
