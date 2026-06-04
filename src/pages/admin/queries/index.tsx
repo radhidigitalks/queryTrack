@@ -116,10 +116,10 @@ export default function TicketsPage() {
               <Download className="w-4 h-4" />
               <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
             </Button>
-            <Button className="space-x-2">
+            {/* <Button className="space-x-2">
               <Plus className="w-4 h-4" />
               <span>Manual Entry</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
 

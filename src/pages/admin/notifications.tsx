@@ -181,7 +181,7 @@ export default function NotificationCenterPage() {
                             )}
                           </div>
                           <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1.5 text-text-muted transition-colors hover:text-white">
+                            <button className="p-1.5 text-text-muted transition-colors ">
                               <MoreVertical className="w-4 h-4" />
                             </button>
                             <button 

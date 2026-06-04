@@ -103,12 +103,12 @@ export default function SuccessPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href={`/track?id=${queryId}`} className="w-full sm:w-auto">
+          {/* <Link href={`/track?id=${queryId}`} className="w-full sm:w-auto">
             <Button className="w-full h-12 px-8 space-x-2" size="lg">
               <span>Track Live Status</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
-          </Link>
+          </Link> */}
           <Link href="/submit-query" className="w-full sm:w-auto">
             <Button variant="outline" className="w-full h-12 px-8" size="lg">
               Submit Another

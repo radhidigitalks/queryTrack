@@ -207,12 +207,12 @@ export default function PublicQueryForm() {
             >
               {isSubmitting ? 'Submitting...' : 'Submit Query'}
             </Button>
-            <Link href="/track" className="w-full sm:w-auto">
+            {/* <Link href="/track" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full h-12 space-x-2">
                 <Search className="w-4 h-4" />
                 <span>Track Existing</span>
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </form>
 

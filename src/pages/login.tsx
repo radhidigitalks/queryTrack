@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, ShieldCheck, Clock, AlertTriangle, BarChart3, Globe } from 'lucide-react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { api } from '@/utils/api';
 
@@ -29,7 +30,7 @@ export default function LoginPage() {
       
       // Role-based routing
       if (data.user.role?.name === 'Admin' || data.user.role === 'Admin') {
-        router.push('/admin/queries');
+        router.push('/admin/dashboard');
       } else {
         router.push('/staff/dashboard');
       }
@@ -41,48 +42,142 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg-dark flex overflow-hidden text-text-main">
       <Head>
-        <title>Login | Query Tracker</title>
+        <title>Admin Login | Query Management System</title>
       </Head>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-white rounded-xl mx-auto mb-4 flex items-center justify-center p-1 shadow-md">
-             <img src="/logo.webp" alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-text-muted text-sm">Sign in to your account</p>
+      {/* Left Side: Business Management Illustration & Info */}
+      <div className="hidden lg:flex w-1/2 relative items-center justify-center p-12 overflow-hidden bg-white border-r border-border-subtle">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-dark/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        <div className="relative z-10 max-w-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="text-center"
+          >
+            <div className="inline-block p-4 rounded-3xl bg-white border border-border-subtle shadow-lg mb-8">
+              <img src="/logo.webp" alt="Logo" className="w-16 h-16 object-contain" />
+            </div>
+            
+            <h1 className="text-5xl font-bold mb-6 text-text-main leading-tight tracking-tight">
+              Enterprise <br /> Management Portal
+            </h1>
+            <p className="text-text-muted text-lg mb-12 leading-relaxed">
+              Efficiently handle guest queries, track SLAs, and manage team performance with our modern operational dashboard.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 text-left">
+              {[
+                { title: 'Operational Flow', desc: 'Seamless query handling', icon: ShieldCheck },
+                { title: 'SLA Monitoring', desc: 'Real-time tracking', icon: Clock },
+                { title: 'Escalation Engine', desc: 'Automatic routing', icon: AlertTriangle },
+                { title: 'Advanced Reports', desc: 'Data-driven management', icon: BarChart3 },
+              ].map((item, i) => (
+                <motion.div 
+                  key={i} 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1 }}
+                  className="p-5 admin-card group hover:border-brand-primary/30 transition-all duration-300"
+                >
+                  <item.icon className="w-5 h-5 text-brand-primary mb-3 group-hover:scale-110 transition-transform" />
+                  <h3 className="text-text-main text-sm font-bold mb-1">{item.title}</h3>
+                  <p className="text-text-muted text-[11px] leading-tight">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="bg-bg-card border border-border-subtle rounded-2xl p-6 md:p-8 space-y-6">
-          <Input 
-            label="Email Address"
-            type="email"
-            placeholder="admin@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            icon={<Mail className="w-4 h-4" />}
-            required
-          />
-          <Input 
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4" />}
-            required
-          />
-          <Button type="submit" className="w-full h-12" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </form>
-      </motion.div>
+      {/* Right Side: Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="w-full max-w-md"
+        >
+          <div className="text-center mb-10">
+            {/* Show logo on small screens where sidebar is hidden */}
+            <div className="lg:hidden inline-block p-3 rounded-2xl bg-white border border-border-subtle shadow-md mb-4">
+              <img src="/logo.webp" alt="Logo" className="w-10 h-10 object-contain" />
+            </div>
+            <h2 className="text-3xl font-bold text-text-main mb-2">Sign In</h2>
+            <p className="text-text-muted">Enter your administrative credentials</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="admin-card p-8 space-y-6">
+            <div className="space-y-4">
+              <Input 
+                label="Work Email"
+                placeholder="admin@company.com"
+                type="email"
+                icon={<Mail className="w-4 h-4" />}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <Input 
+                label="Password"
+                placeholder="••••••••"
+                type="password"
+                icon={<Lock className="w-4 h-4" />}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center space-x-2 cursor-pointer group">
+                <input type="checkbox" className="w-4 h-4 rounded border-border-subtle bg-bg-dark text-brand-primary focus:ring-brand-primary/50" />
+                <span className="text-text-muted group-hover:text-text-main transition-colors">Keep me signed in</span>
+              </label>
+              <Link href="#" className="text-brand-primary hover:text-brand-light transition-colors font-medium">
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In to Dashboard'}
+            </Button>
+
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border-subtle" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-bg-card px-2 text-text-muted">Or login with SSO</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button type="button" variant="outline" className="w-full space-x-2">
+                <Globe className="w-4 h-4" />
+                <span>Google</span>
+              </Button>
+              <Button type="button" variant="outline" className="w-full space-x-2">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z" />
+                </svg>
+                <span>Microsoft</span>
+              </Button>
+            </div>
+          </form>
+
+          <p className="text-center mt-8 text-text-muted text-sm">
+            Problems logging in?{' '}
+            <Link href="#" className="text-brand-primary hover:underline">
+              Contact IT Support
+            </Link>
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }
