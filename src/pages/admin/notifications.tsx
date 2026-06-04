@@ -2,18 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { motion } from 'framer-motion';
-import {
-  Bell,
-  MessageSquare,
-  ShieldAlert,
-  CheckCircle2,
-  Clock,
-  Trash2,
-  Settings,
-  Search,
-  Check,
-  MoreVertical
-} from 'lucide-react';
+import { Bell, Check, Trash2, Clock, AlertTriangle, AlertCircle, Info, CheckCircle2, RefreshCw, MessageSquare, ShieldAlert, Settings, Search, MoreVertical } from 'lucide-react';
+import { API_URL } from '@/utils/api';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -42,7 +32,7 @@ export default function NotificationCenterPage() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('http://localhost:3655/api/notifications');
+      const res = await fetch(`${API_URL}/notifications`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data);
@@ -69,7 +59,7 @@ export default function NotificationCenterPage() {
 
   const markAsRead = async (id: string) => {
     try {
-      await fetch(`http://localhost:3655/api/notifications/${id}/read`, { method: 'PATCH' });
+      await fetch(`${API_URL}/notifications/${id}/read`, { method: 'PATCH' });
       setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
       window.dispatchEvent(new Event('notificationsUpdated'));
     } catch (error) {
@@ -79,7 +69,7 @@ export default function NotificationCenterPage() {
 
   const markAllRead = async () => {
     try {
-      await fetch('http://localhost:3655/api/notifications/mark-all-read', { method: 'POST' });
+      await fetch(`${API_URL}/notifications/mark-all-read`, { method: 'POST' });
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
       window.dispatchEvent(new Event('notificationsUpdated'));
     } catch (error) {
@@ -89,7 +79,7 @@ export default function NotificationCenterPage() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await fetch(`http://localhost:3655/api/notifications/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/notifications/${id}`, { method: 'DELETE' });
       setNotifications(notifications.filter(n => n._id !== id));
       window.dispatchEvent(new Event('notificationsUpdated'));
     } catch (error) {

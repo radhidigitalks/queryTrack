@@ -19,6 +19,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { io } from 'socket.io-client';
+import { API_URL, BASE_URL } from '../utils/api';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -43,7 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('http://localhost:3655/api/notifications');
+      const res = await fetch(`${API_URL}/notifications`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data);
@@ -55,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const markAsRead = async (id: string, link?: string) => {
     try {
-      await fetch(`http://localhost:3655/api/notifications/${id}/read`, { method: 'PATCH' });
+      await fetch(`${API_URL}/notifications/${id}/read`, { method: 'PATCH' });
       setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
       
       // Dispatch a custom event to notify other components (like the notifications page)
@@ -82,7 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     fetchNotifications();
 
     // Setup Socket.IO connection
-    const socket = io('http://localhost:3655');
+    const socket = io(BASE_URL);
 
     socket.on('new_ticket', (ticket) => {
       fetchNotifications(); // Refresh notifications when a new one arrives

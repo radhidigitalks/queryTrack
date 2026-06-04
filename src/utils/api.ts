@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3655';
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3655';
 export const API_URL = BASE_URL.endsWith('/api') ? BASE_URL : `${BASE_URL}/api`;
 
 const getAuthHeaders = () => {
