@@ -1,4 +1,4 @@
-export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Expired';
+export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Expired' | 'Time Expired' | 'Escalated';
 
 export interface Ticket {
   id: string;
@@ -20,6 +20,7 @@ export interface Ticket {
 export interface Department {
   id: string;
   name: string;
+  description?: string;
   isActive: boolean;
 }
 

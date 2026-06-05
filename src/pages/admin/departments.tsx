@@ -151,7 +151,7 @@ export default function DepartmentManagementPage() {
                         <div>
                           <h3 className="text-lg font-bold text-white">{dept.name}</h3>
                           <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-xs text-text-muted font-mono bg-brand-primary/10 px-2 py-0.5 rounded">?{dept.slug}</span>
+                            <span className="text-xs text-text-muted font-mono bg-brand-primary/10 px-2 py-0.5 rounded">{dept.description || 'No description'}</span>
                             <Users className="w-3.5 h-3.5 text-text-muted" />
                             <span className="text-xs text-text-muted font-bold uppercase">{usersCount} Active Members</span>
                           </div>
