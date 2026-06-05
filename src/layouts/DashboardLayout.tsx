@@ -10,16 +10,18 @@ import {
   AlertTriangle, 
   Bell, 
   BarChart3, 
-  Settings, 
   LogOut,
   Search,
   Menu,
   X,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  Tags,
+  UserPlus,
+  Timer
 } from 'lucide-react';
 import { io } from 'socket.io-client';
-import { API_URL, BASE_URL } from '../utils/api';
+import { API_URL, BASE_URL, api } from '../utils/api';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,11 +29,13 @@ const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard', mod: 'dashboard' },
   { icon: MessageSquare, label: 'Queries', href: '/admin/queries', mod: 'query' },
   { icon: Building2, label: 'Departments', href: '/admin/departments', mod: 'departments' },
+  { icon: Tags, label: 'Categories', href: '/admin/categories', mod: 'settings' },
+  { icon: UserPlus, label: 'Category Assignments', href: '/admin/assignments', mod: 'settings' },
+  { icon: Timer, label: 'SLA Management', href: '/admin/sla', mod: 'settings' },
   { icon: Users, label: 'Users', href: '/admin/users', mod: 'users' },
   { icon: Shield, label: 'Roles & Permissions', href: '/admin/roles', mod: 'settings' },
   { icon: Bell, label: 'Notifications', href: '/admin/notifications', mod: 'dashboard' },
   { icon: BarChart3, label: 'Reports', href: '/admin/reports', mod: 'reports' },
-  { icon: Settings, label: 'Settings', href: '/admin/settings', mod: 'settings' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -40,15 +44,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const initialLoadTimeRef = useRef<number>(Date.now());
   const router = useRouter();
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(`${API_URL}/notifications`);
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-      }
+      const data = await api.getNotifications();
+      setNotifications(data);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     }
@@ -56,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const markAsRead = async (id: string, link?: string) => {
     try {
-      await fetch(`${API_URL}/notifications/${id}/read`, { method: 'PATCH' });
+      await api.markAsRead(id);
       setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
       
       // Dispatch a custom event to notify other components (like the notifications page)
@@ -74,43 +76,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     const u = localStorage.getItem('user');
-    if (u) {
-      setUser(JSON.parse(u));
-    } else {
+    const token = localStorage.getItem('token');
+    if (!u || !token) {
       router.push('/login');
+      return;
     }
 
+    setUser(JSON.parse(u));
     fetchNotifications();
 
     // Setup Socket.IO connection
-    const socket = io(BASE_URL);
+    const socketUrl = BASE_URL.replace(/\/api$/, '');
+    const socket = io(socketUrl);
 
     socket.on('new_ticket', (ticket) => {
-      fetchNotifications(); // Refresh notifications when a new one arrives
+      const createdAt = ticket?.createdAt ? new Date(ticket.createdAt).getTime() : null;
+      if (createdAt != null && createdAt < initialLoadTimeRef.current) return;
+      fetchNotifications();
+      window.dispatchEvent(new Event('notificationsUpdated'));
       toast.success(
         <div>
           <strong>New Query Received!</strong>
           <br />
           <span className="text-xs font-mono">{ticket.id}</span>
           <br />
-          <span className="text-[10px] text-text-muted">{ticket.subject}</span>
+          <span className="text-[10px] text-text-muted">{ticket.customerName || ''}</span>
         </div>,
         { duration: 8000 }
       );
     });
 
-    socket.on('ticket_expired', (ticket) => {
-      fetchNotifications(); // Refresh notifications for SLA warning
-      toast.error(
-        <div>
-          <strong>SLA Timeout Escalation!</strong>
-          <br />
-          <span className="text-xs font-mono">{ticket.id}</span>
-          <br />
-          <span className="text-[10px] text-text-muted">Ticket expired and requires admin attention.</span>
-        </div>,
-        { duration: 10000, icon: '⚠️' }
-      );
+    socket.on('ticket_escalated', (ticket) => {
+      fetchNotifications();
+      window.dispatchEvent(new Event('notificationsUpdated'));
+      const currentUserId = localStorage.getItem('userId');
+      if (!ticket.supervisorId || ticket.supervisorId === currentUserId) {
+        toast.error(
+          <div>
+            <strong>SLA Timeout Escalation!</strong>
+            <br />
+            <span className="text-xs font-mono">{ticket.id}</span>
+            <br />
+            <span className="text-[10px] text-text-muted">Ticket escalated to supervisor.</span>
+          </div>,
+          { duration: 10000 }
+        );
+      }
     });
 
     const handleResize = () => {

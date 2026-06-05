@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { motion } from 'framer-motion';
@@ -13,7 +13,10 @@ import {
   Activity,
   AlertTriangle,
   History,
-  Timer
+  Timer,
+  TrendingUp,
+  Building2,
+  Tags
 } from 'lucide-react';
 import {
   AreaChart,
@@ -27,8 +30,8 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-
-import { storage, Ticket } from '@/utils/storage';
+import { api } from '@/utils/api';
+import Link from 'next/link';
 
 const data = [
   { name: 'Mon', queries: 45, resolved: 38 },
@@ -41,38 +44,42 @@ const data = [
 ];
 
 export default function DashboardPage() {
-  const [tickets, setTickets] = React.useState<any[]>([]);
-  const [departments, setDepartments] = React.useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
-        const { api } = await import('@/utils/api');
-        const ticketsRes = await api.getTickets(1, 1000); // Fetch a large limit for dashboard aggregation
-        setTickets(ticketsRes.data || []);
-        
-        const deptsRes = await api.getDepartments();
-        setDepartments(deptsRes);
+        const statsData = await api.getDashboardStats();
+        setStats(statsData);
       } catch (err) {
         console.error('Error fetching dashboard data', err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
 
-  const total = tickets.length;
-  const open = tickets.filter(t => t.status === 'Open').length;
-  const inProgress = tickets.filter(t => t.status === 'In Progress').length;
-  const resolved = tickets.filter(t => t.status === 'Resolved').length;
-  const expired = tickets.filter(t => t.status === 'Expired').length;
+  if (loading || !stats) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const kpis = [
-    { label: 'Total Tickets', value: total.toString(), trend: '', isUp: true, icon: MessageSquare, color: 'gold' },
-    { label: 'Open', value: open.toString(), trend: '', isUp: false, icon: Activity, color: 'info' },
-    { label: 'In Progress', value: inProgress.toString(), trend: '', isUp: true, icon: Timer, color: 'warning' },
-    { label: 'Resolved', value: resolved.toString(), trend: '', isUp: true, icon: CheckCircle2, color: 'success' },
-    { label: 'Expired', value: expired.toString(), trend: '', isUp: true, icon: AlertTriangle, color: 'danger' },
+    { label: 'Total Tickets', value: stats.total.toString(), trend: '', isUp: true, icon: MessageSquare, color: 'gold' },
+    { label: 'Open', value: stats.open.toString(), trend: '', isUp: false, icon: Activity, color: 'info' },
+    { label: 'In Progress', value: stats.inProgress.toString(), trend: '', isUp: true, icon: Timer, color: 'warning' },
+    { label: 'Resolved', value: stats.resolved.toString(), trend: '', isUp: true, icon: CheckCircle2, color: 'success' },
+    { label: 'Time Expired', value: stats.timeExpired.toString(), trend: '', isUp: true, icon: Clock, color: 'danger' },
+    { label: 'Escalated', value: stats.escalated.toString(), trend: '', isUp: true, icon: AlertTriangle, color: 'danger' },
   ];
+
   return (
     <DashboardLayout>
       <Head>
@@ -173,20 +180,16 @@ export default function DashboardPage() {
           <Card className="p-6">
             <h3 className="text-lg font-bold text-text-main mb-8 flex items-center">
               <History className="w-4 h-4 mr-2 text-brand-primary" />
-              System Activity
+              Recent Activity
             </h3>
             <div className="space-y-6">
               {[
-                { type: 'resolved', msg: 'QRY-2026-085 resolved by David', time: '2m ago' },
-                { type: 'escalated', msg: 'QRY-2026-112 auto-escalated to Level 2', time: '12m ago' },
-                { type: 'assigned', msg: 'New query QRY-2026-120 assigned to Sarah', time: '25m ago' },
-                { type: 'note', msg: 'Internal note added to QRY-2026-045', time: '1h ago' },
-                { type: 'status', msg: 'Status updated for QRY-2026-092', time: '2h ago' },
+                { type: 'resolved', msg: 'Ticket TKT-2025-001 resolved by John', time: '2m ago' },
+                { type: 'escalated', msg: 'Ticket TKT-2025-002 escalated to Supervisor', time: '12m ago' },
+                { type: 'assigned', msg: 'New ticket assigned to Sarah', time: '25m ago' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start space-x-3">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${item.type === 'resolved' ? 'bg-success' :
-                    item.type === 'escalated' ? 'bg-danger' : 'bg-brand-primary'
-                    }`} />
+                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${item.type === 'resolved' ? 'bg-success' : item.type === 'escalated' ? 'bg-danger' : 'bg-brand-primary'}`} />
                   <div className="flex-1">
                     <p className="text-xs text-text-main leading-tight mb-1">{item.msg}</p>
                     <p className="text-[10px] text-text-muted uppercase font-bold">{item.time}</p>
@@ -194,9 +197,6 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <Button className="w-full mt-6 text-xs uppercase tracking-widest font-bold text-brand-primary hover:text-brand-dark">
-              View Audit Logs
-            </Button>
           </Card>
         </div>
 
@@ -205,10 +205,12 @@ export default function DashboardPage() {
           <Card className="p-0 overflow-hidden">
             <div className="p-4 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">Recent Tickets</h3>
-              <Badge variant="danger">Review Expired</Badge>
+              <Link href="/admin/queries">
+                <Button variant="ghost" size="sm">View All</Button>
+              </Link>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
                     <th className="px-4 py-3 font-bold">ID</th>
@@ -217,22 +219,17 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
-                  {tickets.slice(0, 5).map((q) => (
-                    <tr key={q.id} className={`transition-colors group ${q.status === 'Expired' ? 'bg-danger/5 hover:bg-danger/10' : 'hover:bg-brand-primary/5'}`}>
-                      <td className="px-4 py-3 font-bold text-brand-primary">{q.id}</td>
-                      <td className="px-4 py-3 text-text-main">{q.customerName}</td>
+                  {stats.recentTickets?.slice(0, 5).map((ticket: any) => (
+                    <tr key={ticket.id} className={`transition-colors group hover:bg-brand-primary/5`}>
+                      <td className="px-4 py-3 font-bold text-brand-primary">{ticket.id}</td>
+                      <td className="px-4 py-3 text-text-main">{ticket.customerName}</td>
                       <td className="px-4 py-3">
-                        <Badge variant={q.status === 'Expired' ? 'danger' : q.status === 'Resolved' ? 'success' : q.status === 'In Progress' ? 'warning' : 'info'}>
-                          {q.status}
+                        <Badge variant={ticket.status === 'Resolved' ? 'success' : ticket.status === 'Escalated' || ticket.status === 'Time Expired' ? 'danger' : ticket.status === 'In Progress' ? 'warning' : 'info'}>
+                          {ticket.status}
                         </Badge>
                       </td>
                     </tr>
                   ))}
-                  {tickets.length === 0 && (
-                    <tr>
-                      <td colSpan={3} className="px-4 py-6 text-center text-text-muted">No tickets found</td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -240,28 +237,30 @@ export default function DashboardPage() {
 
           <Card className="p-0 overflow-hidden">
             <div className="p-4 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">Department Wise Count</h3>
+              <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">Quick Links</h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
-                    <th className="px-4 py-3 font-bold">Department</th>
-                    <th className="px-4 py-3 font-bold text-right">Tickets</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-subtle">
-                  {departments.map(dept => {
-                    const count = tickets.filter(t => t.departmentId === dept.id).length;
-                    return (
-                      <tr key={dept.id} className="hover:bg-brand-primary/5 transition-colors">
-                        <td className="px-4 py-3 text-text-main">{dept.name}</td>
-                        <td className="px-4 py-3 text-right font-bold">{count}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="p-4 space-y-3">
+              <Link href="/admin/categories" className="flex items-center p-3 rounded-lg hover:bg-brand-primary/5 transition-colors">
+                <Tags className="w-5 h-5 text-brand-primary mr-3" />
+                <div>
+                  <p className="font-medium text-text-main">Categories</p>
+                  <p className="text-xs text-text-muted">Manage categories per department</p>
+                </div>
+              </Link>
+              <Link href="/admin/assignments" className="flex items-center p-3 rounded-lg hover:bg-brand-primary/5 transition-colors">
+                <Activity className="w-5 h-5 text-brand-primary mr-3" />
+                <div>
+                  <p className="font-medium text-text-main">Assignments</p>
+                  <p className="text-xs text-text-muted">Assign staff and supervisors</p>
+                </div>
+              </Link>
+              <Link href="/admin/sla" className="flex items-center p-3 rounded-lg hover:bg-brand-primary/5 transition-colors">
+                <Timer className="w-5 h-5 text-brand-primary mr-3" />
+                <div>
+                  <p className="font-medium text-text-main">SLA Management</p>
+                  <p className="text-xs text-text-muted">Configure resolution time SLAs</p>
+                </div>
+              </Link>
             </div>
           </Card>
         </div>

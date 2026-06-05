@@ -13,8 +13,7 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  Tag
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -147,7 +146,8 @@ export default function TicketsPage() {
                 <option value="Open">Open</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Resolved">Resolved</option>
-                <option value="Expired">Expired</option>
+                <option value="Time Expired">Time Expired</option>
+                <option value="Escalated">Escalated</option>
               </select>
               <select
                 className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50"
@@ -177,8 +177,9 @@ export default function TicketsPage() {
                     </div>
                   </th>
                   <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Subject</th>
                   <th className="px-6 py-4">Department</th>
+                  <th className="px-6 py-4">Category</th>
+                  <th className="px-6 py-4">Assigned To</th>
                   <th className="px-6 py-4">Created</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
@@ -186,36 +187,49 @@ export default function TicketsPage() {
               </thead>
               <tbody className="divide-y divide-border-subtle">
                 {filteredTickets.map((ticket) => {
-                  const dept = departments.find(d => d.id === ticket.departmentId);
+                  const departmentName =
+                    (ticket as any)?.departmentId?.name ||
+                    departments.find(d => String(d.id) === String((ticket as any)?.departmentId))?.name ||
+                    'Unknown';
+                  const categoryName = (ticket as any)?.categoryId?.name || 'Unknown';
+                  const assignedToName = (ticket as any)?.assignedStaffId?.name || 'Unassigned';
                   return (
-                    <tr key={ticket.id} className={`transition-all group text-sm ${ticket.status === 'Expired' ? 'bg-danger/5 hover:bg-danger/10' : 'hover:bg-brand-primary/5'}`}>
+                    <tr
+                      key={ticket.id}
+                      className={`transition-all group text-sm ${
+                        ticket.status === 'Time Expired' || ticket.status === 'Escalated'
+                          ? 'bg-danger/5 hover:bg-danger/10'
+                          : 'hover:bg-brand-primary/5'
+                      }`}
+                    >
                       <td className="px-6 py-4">
                         <Link href={`/admin/queries/${ticket.id}`} className="font-bold text-brand-primary hover:underline">
                           {ticket.id}
                         </Link>
                       </td>
                       <td className="px-6 py-4 text-text-main font-medium">{ticket.customerName}</td>
+                    
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 text-text-muted">
-                          <Tag className="w-3 h-3" />
-                          <span className="truncate max-w-[150px]">{ticket.subject}</span>
-                        </div>
+                        <span className="text-xs text-text-main">{departmentName}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-xs text-text-main">{dept?.name || 'Unknown'}</span>
+                        <span className="text-xs text-text-main">{categoryName}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs text-text-main">{assignedToName}</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <Clock className="w-3 h-3 text-text-muted" />
                           <span className="font-mono text-xs text-text-main">
-                            {new Date(ticket.createdAt).toLocaleDateString()}
+                            {new Date(ticket.createdAt).toLocaleString()}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <div className={`w-1.5 h-1.5 rounded-full ${ticket.status === 'Resolved' ? 'bg-success' :
-                            ticket.status === 'Expired' ? 'bg-danger' :
+                            ticket.status === 'Escalated' || ticket.status === 'Time Expired' ? 'bg-danger' :
                               ticket.status === 'In Progress' ? 'bg-info' : 'bg-warning'
                             }`} />
                           <span className="text-xs font-bold text-text-main uppercase">{ticket.status}</span>

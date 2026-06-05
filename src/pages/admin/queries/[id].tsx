@@ -16,23 +16,28 @@ import {
   Lock,
   Activity,
   Building2,
-  UserPlus
+  UserPlus,
+  Tags,
+  QrCode,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Ticket, Department } from '@/utils/storage';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 export default function TicketDetailPage() {
   const router = useRouter();
   const { id } = router.query;
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [ticket, setTicket] = useState<any>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('notes');
   const [isAdmin, setIsAdmin] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
 
   const fetchTicket = async () => {
     if (id && typeof id === 'string') {
@@ -41,6 +46,8 @@ export default function TicketDetailPage() {
         setTicket(ticketData);
         const depts = await api.getDepartments();
         setDepartments(depts);
+        const usersData = await api.getUsers();
+        setUsers(usersData);
       } catch (err) {
         console.error(err);
       }
@@ -51,17 +58,21 @@ export default function TicketDetailPage() {
     fetchTicket();
   }, [id]);
 
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (!ticket) return <DashboardLayout><div className="p-8 text-white">Loading...</div></DashboardLayout>;
 
-  const dept = departments.find(d => d.id === ticket.departmentId);
-  const isExpired = ticket.status === 'Expired';
-  const timeRemainingMs = new Date(ticket.expiryAt).getTime() - new Date().getTime();
+  const timeRemainingMs = new Date(ticket.expiryAt).getTime() - now;
+  const isExpired = ticket.status === 'Time Expired' || ticket.status === 'Escalated' || timeRemainingMs <= 0;
   const timeRemainingHours = Math.max(0, Math.floor(timeRemainingMs / (1000 * 60 * 60)));
   const timeRemainingMins = Math.max(0, Math.floor((timeRemainingMs % (1000 * 60 * 60)) / (1000 * 60)));
 
-  const handleUpdateStatus = async (newStatus: 'Open' | 'In Progress' | 'Resolved' | 'Expired') => {
+  const handleUpdateStatus = async (newStatus: string) => {
     try {
-      await api.updateTicket(ticket.id, { ...ticket, status: newStatus });
+      await api.updateTicket(ticket.id, { status: newStatus });
       toast.success(`Ticket status updated to ${newStatus}`);
       fetchTicket();
     } catch (err) {
@@ -72,13 +83,11 @@ export default function TicketDetailPage() {
 
   const handleAddNote = async () => {
     if (!message.trim()) return;
-    const note = {
-      text: message,
-      addedBy: 'Admin',
-      addedAt: new Date().toISOString()
-    };
     try {
-      await api.updateTicket(ticket.id, { ...ticket, internalNotes: [...ticket.internalNotes, note] });
+      await api.addNoteToTicket(ticket.id, {
+        text: message,
+        addedBy: 'Admin'
+      });
       setMessage('');
       toast.success('Note added successfully');
       fetchTicket();
@@ -88,9 +97,9 @@ export default function TicketDetailPage() {
     }
   };
 
-  const handleReassign = async (newDeptId: string) => {
+  const handleReassign = async (newUserId: string) => {
     try {
-      await api.updateTicket(ticket.id, { ...ticket, departmentId: newDeptId });
+      await api.updateTicket(ticket.id, { assignedStaffId: newUserId });
       toast.success('Ticket reassigned successfully');
       fetchTicket();
     } catch (err) {
@@ -109,7 +118,6 @@ export default function TicketDetailPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <Button
-
               size="sm"
               className="h-9 w-9 p-0"
               onClick={() => router.back()}
@@ -119,7 +127,7 @@ export default function TicketDetailPage() {
             <div>
               <div className="flex items-center space-x-3">
                 <h1 className="text-xl font-bold text-text-main tracking-tight">{ticket.id}</h1>
-                <Badge variant={isExpired ? 'danger' : ticket.status === 'Resolved' ? 'success' : 'info'}>
+                <Badge variant={ticket.status === 'Resolved' ? 'success' : ticket.status === 'Escalated' || ticket.status === 'Time Expired' ? 'danger' : ticket.status === 'In Progress' ? 'warning' : 'info'}>
                   {ticket.status}
                 </Badge>
               </div>
@@ -130,18 +138,6 @@ export default function TicketDetailPage() {
           </div>
 
           <div className="flex items-center space-x-2">
-            {isAdmin && (
-              <div className="flex items-center space-x-2 bg-bg-dark border border-border-subtle rounded-lg px-2 h-9">
-                <UserPlus className="w-3.5 h-3.5 text-text-muted" />
-                <select
-                  className="bg-transparent text-xs text-text-main focus:outline-none"
-                  value={ticket.departmentId}
-                  onChange={(e) => handleReassign(e.target.value)}
-                >
-                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-              </div>
-            )}
             {ticket.status !== 'Resolved' && (
               <Button
                 onClick={() => handleUpdateStatus('Resolved')}
@@ -154,7 +150,6 @@ export default function TicketDetailPage() {
             {ticket.status === 'Open' && (
               <Button
                 onClick={() => handleUpdateStatus('In Progress')}
-
                 className="space-x-2 h-9 text-xs"
               >
                 <span>Start Progress</span>
@@ -198,17 +193,62 @@ export default function TicketDetailPage() {
               </div>
               <div className="p-5 space-y-4">
                 <div>
-                  <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Subject</label>
-                  <span className="text-xs text-text-main font-medium">{ticket.subject}</span>
+                  <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">QR Location</label>
+                  <div className="flex items-center space-x-2">
+                    <QrCode className="w-3.5 h-3.5 text-text-muted" />
+                    <span className="text-xs text-text-main font-medium">{ticket.qrCodeId?.location || ticket.qrCodeId?.name || 'Unknown'}</span>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Assigned Department</label>
-                  <span className="text-xs text-text-main font-medium">{dept?.name || 'Unknown'}</span>
+                  <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Department</label>
+                  <div className="flex items-center space-x-2">
+                    <Building2 className="w-3.5 h-3.5 text-text-muted" />
+                    <span className="text-xs text-text-main font-medium">{ticket.departmentId?.name || 'Unknown'}</span>
+                  </div>
                 </div>
+                <div>
+                  <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Category</label>
+                  <div className="flex items-center space-x-2">
+                    <Tags className="w-3.5 h-3.5 text-text-muted" />
+                    <span className="text-xs text-text-main font-medium">{ticket.categoryId?.name || 'Unknown'}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Assigned To</label>
+                  <div className="flex items-center space-x-2">
+                    <User className="w-3.5 h-3.5 text-text-muted" />
+                    <span className="text-xs text-text-main font-medium">{ticket.assignedStaffId?.name || 'Unassigned'}</span>
+                  </div>
+                </div>
+                {ticket.supervisorId && (
+                  <div>
+                    <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Supervisor</label>
+                    <div className="flex items-center space-x-2">
+                      <Shield className="w-3.5 h-3.5 text-text-muted" />
+                      <span className="text-xs text-text-main font-medium">{ticket.supervisorId?.name || 'Unassigned'}</span>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Description</label>
                   <p className="text-xs text-text-main leading-relaxed">{ticket.description}</p>
                 </div>
+                {isAdmin && (
+                  <div>
+                    <label className="text-[10px] text-text-muted uppercase font-bold block mb-1">Reassign Staff</label>
+                    <div className="flex items-center space-x-2 bg-bg-dark border border-border-subtle rounded-lg px-2 h-9">
+                      <UserPlus className="w-3.5 h-3.5 text-text-muted" />
+                      <select
+                        className="bg-transparent text-xs text-text-main focus:outline-none flex-1"
+                        value={ticket.assignedStaffId?.id || ''}
+                        onChange={(e) => handleReassign(e.target.value)}
+                      >
+                        <option value="">Select Staff</option>
+                        {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -221,7 +261,15 @@ export default function TicketDetailPage() {
                   <Clock className={`w-3.5 h-3.5 ${isExpired ? 'text-danger' : 'text-warning'}`} />
                 </div>
                 {isExpired ? (
-                  <p className="text-xl font-mono font-bold text-danger tracking-tighter">EXPIRED</p>
+                  <div>
+                    <p className="text-xl font-mono font-bold text-danger tracking-tighter">EXPIRED</p>
+                    {ticket.status === 'Escalated' && (
+                      <div className="flex items-center space-x-1 mt-1">
+                        <AlertTriangle className="w-3 h-3 text-danger" />
+                        <p className="text-[10px] text-danger uppercase font-bold">ESCALATED TO SUPERVISOR</p>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-xl font-mono font-bold text-warning tracking-tighter">
                     {timeRemainingHours}h {timeRemainingMins}m
@@ -230,6 +278,33 @@ export default function TicketDetailPage() {
                 <p className="text-[10px] text-text-muted mt-1 uppercase font-bold">
                   Expires: {new Date(ticket.expiryAt).toLocaleString()}
                 </p>
+                <p className="text-[10px] text-text-muted mt-1">
+                  SLA: {ticket.slaResolutionTime} {ticket.slaTimeUnit}
+                </p>
+              </Card>
+            )}
+
+            {ticket.escalationHistory?.length > 0 && (
+              <Card className="p-0 overflow-hidden">
+                <div className="p-4 border-b border-border-subtle bg-bg-dark/30">
+                  <h3 className="text-xs font-bold text-text-main uppercase tracking-widest flex items-center">
+                    <AlertTriangle className="w-3.5 h-3.5 mr-2 text-danger" />
+                    Escalation History
+                  </h3>
+                </div>
+                <div className="p-5 space-y-3">
+                  {ticket.escalationHistory.map((escalation: any, i: number) => (
+                    <div key={i} className="p-3 bg-danger/5 border border-danger/10 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold text-danger uppercase">{escalation.reason}</span>
+                        <span className="text-[10px] text-text-muted">{new Date(escalation.escalatedAt).toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-text-main">
+                        Reassigned from {escalation.previousAssignee?.name || 'Unassigned'} to {escalation.newAssignee?.name || 'Unassigned'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </Card>
             )}
           </div>
@@ -258,10 +333,10 @@ export default function TicketDetailPage() {
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {activeTab === 'notes' && (
                   <div className="space-y-4">
-                    {ticket.internalNotes.length === 0 ? (
+                    {ticket.internalNotes?.length === 0 ? (
                       <p className="text-center text-text-muted text-sm py-8">No internal notes yet.</p>
                     ) : (
-                      ticket.internalNotes.map((note, idx) => (
+                      ticket.internalNotes?.map((note: any, idx: number) => (
                         <div key={idx} className="p-4 bg-bg-dark border border-border-subtle rounded-xl">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-bold text-brand-primary uppercase">{note.addedBy}</span>
@@ -276,7 +351,7 @@ export default function TicketDetailPage() {
 
                 {activeTab === 'timeline' && (
                   <div className="space-y-6">
-                    {ticket.timeline.map((log, i) => (
+                    {ticket.timeline?.map((log: any, i: number) => (
                       <div key={i} className="flex items-center justify-between text-xs border-b border-border-subtle pb-4 last:border-0">
                         <div>
                           <p className="text-text-main font-bold uppercase tracking-tight">{log.title}</p>

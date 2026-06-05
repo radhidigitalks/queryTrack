@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { motion } from 'framer-motion';
@@ -8,60 +8,72 @@ import {
   CheckCircle2, 
   Activity,
   AlertTriangle,
-  Timer
+  Timer,
+  User,
+  Tags,
+  QrCode
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { storage, Ticket, Department } from '@/utils/storage';
 import { api } from '@/utils/api';
+import Link from 'next/link';
 
 export default function StaffDashboardPage() {
-  const [tickets, setTickets] = React.useState<Ticket[]>([]);
-  const [deptName, setDeptName] = React.useState('');
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
-  const fetchData = async () => {
-    try {
-      // Simulate getting logged in user's department
-      // For now, we'll just grab the first department for the demo
-      const depts = await api.getDepartments();
-      const myDept = depts[0]?.id || '1';
-      
-      const ticketsData = await api.getTickets();
-      const myTickets = ticketsData.filter((t: Ticket) => t.departmentId === myDept);
-      
-      setTickets(myTickets);
-    } catch (err) {
-      console.error(err);
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-  };
-
-  React.useEffect(() => {
-    fetchData();
   }, []);
 
-  const open = tickets.filter(t => t.status === 'Open').length;
-  const inProgress = tickets.filter(t => t.status === 'In Progress').length;
-  const resolved = tickets.filter(t => t.status === 'Resolved').length;
-  const expired = tickets.filter(t => t.status === 'Expired').length;
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const staffStats = await api.getStaffDashboardStats(user.id);
+        setStats(staffStats);
+      } catch (err) {
+        console.error('Error fetching staff data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  if (loading || !stats) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const kpis = [
-    { label: 'My Open', value: open.toString(), icon: Activity, color: 'info' },
-    { label: 'My In Progress', value: inProgress.toString(), icon: Timer, color: 'warning' },
-    { label: 'My Resolved', value: resolved.toString(), icon: CheckCircle2, color: 'success' },
-    { label: 'My Expired', value: expired.toString(), icon: AlertTriangle, color: 'danger' },
+    { label: 'My Open', value: stats.myOpen.toString(), icon: Activity, color: 'info' },
+    { label: 'My In Progress', value: stats.myInProgress.toString(), icon: Timer, color: 'warning' },
+    { label: 'My Resolved', value: stats.myResolved.toString(), icon: CheckCircle2, color: 'success' },
+    { label: 'My Expired', value: stats.myExpired.toString(), icon: AlertTriangle, color: 'danger' },
   ];
 
   return (
     <DashboardLayout>
       <Head>
-        <title>Staff Dashboard | {deptName}</title>
+        <title>Staff Dashboard | {user?.name || 'Staff'}</title>
       </Head>
 
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-text-main mb-1">Staff Dashboard</h1>
-          <p className="text-text-muted text-sm">Welcome back. Viewing tickets for {deptName}.</p>
+          <p className="text-text-muted text-sm">Welcome back, {user?.name || 'Staff'}.</p>
         </div>
 
         {/* KPI Grid */}
@@ -91,34 +103,45 @@ export default function StaffDashboardPage() {
         <div className="grid grid-cols-1 gap-6">
           <Card className="p-0 overflow-hidden">
             <div className="p-4 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">My Department Tickets</h3>
+              <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">My Tickets</h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
                     <th className="px-4 py-3 font-bold">ID</th>
                     <th className="px-4 py-3 font-bold">Customer</th>
-                    <th className="px-4 py-3 font-bold">Subject</th>
+                    <th className="px-4 py-3 font-bold">Category</th>
                     <th className="px-4 py-3 font-bold">Status</th>
+                    <th className="px-4 py-3 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
-                  {tickets.map((q) => (
-                    <tr key={q.id} className={`transition-colors group ${q.status === 'Expired' ? 'bg-danger/5 hover:bg-danger/10' : 'hover:bg-brand-primary/5'}`}>
-                      <td className="px-4 py-3 font-bold text-brand-primary">{q.id}</td>
-                      <td className="px-4 py-3 text-text-main">{q.customerName}</td>
-                      <td className="px-4 py-3 text-text-main truncate max-w-xs">{q.subject}</td>
+                  {stats.myTickets?.map((ticket: any) => (
+                    <tr key={ticket.id} className={`transition-colors group ${ticket.status === 'Time Expired' || ticket.status === 'Escalated' ? 'bg-danger/5 hover:bg-danger/10' : 'hover:bg-brand-primary/5'}`}>
+                      <td className="px-4 py-3 font-bold text-brand-primary">{ticket.id}</td>
+                      <td className="px-4 py-3 text-text-main">{ticket.customerName}</td>
+                      <td className="px-4 py-3 text-text-main">
+                        <div className="flex items-center">
+                          <Tags className="w-3.5 h-3.5 text-text-muted mr-2" />
+                          {ticket.categoryId?.name || 'N/A'}
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
-                        <Badge variant={q.status === 'Expired' ? 'danger' : q.status === 'Resolved' ? 'success' : q.status === 'In Progress' ? 'warning' : 'info'}>
-                          {q.status}
+                        <Badge variant={ticket.status === 'Resolved' ? 'success' : ticket.status === 'Escalated' || ticket.status === 'Time Expired' ? 'danger' : ticket.status === 'In Progress' ? 'warning' : 'info'}>
+                          {ticket.status}
                         </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link href={`/admin/queries/${ticket.id}`}>
+                          <Button variant="ghost" size="sm">View</Button>
+                        </Link>
                       </td>
                     </tr>
                   ))}
-                  {tickets.length === 0 && (
+                  {(!stats.myTickets || stats.myTickets.length === 0) && (
                     <tr>
-                      <td colSpan={4} className="px-4 py-6 text-center text-text-muted">No tickets found in your department</td>
+                      <td colSpan={5} className="px-4 py-6 text-center text-text-muted">No tickets assigned to you</td>
                     </tr>
                   )}
                 </tbody>

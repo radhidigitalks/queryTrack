@@ -5,32 +5,110 @@ import { Button } from '@/components/ui/Button';
 import { CheckCircle2, ArrowRight, Share2, ClipboardCheck, Clock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { storage } from '@/utils/storage';
+import { api } from '@/utils/api';
+import toast from 'react-hot-toast';
 
 export default function SuccessPage() {
   const router = useRouter();
   const { id } = router.query;
   
-  const [resolutionTime, setResolutionTime] = React.useState('24 hours');
-  
-  React.useEffect(() => {
-    const fetchResolutionTime = async () => {
-      try {
-        const { api } = await import('@/utils/api');
-        const resTimes = await api.getResolutionTimes();
-        const activeResTime = resTimes.find((r: any) => r.isActive);
-        if (activeResTime) {
-          setResolutionTime(activeResTime.label);
-        }
-      } catch (err) {
-        console.error('Failed to fetch resolution times', err);
-      }
-    };
-    fetchResolutionTime();
-  }, []);
-  
   // Fallback to static ID if not supplied
   const queryId = typeof id === 'string' ? id : 'TKT-2026-0001';
+  const [status, setStatus] = React.useState<string>('Open');
+  const [estimatedResolution, setEstimatedResolution] = React.useState<string>('As per category SLA');
+  const [expiryAtMs, setExpiryAtMs] = React.useState<number | null>(null);
+  const [now, setNow] = React.useState(() => Date.now());
+
+  const getStatusClassName = (s: string) => {
+    const normalized = (s || '').toLowerCase();
+    if (normalized === 'resolved') return 'text-success';
+    if (normalized === 'in progress') return 'text-warning';
+    if (normalized === 'expired' || normalized === 'time expired' || normalized === 'escalated') return 'text-danger';
+    return 'text-success';
+  };
+
+  const formatDurationMs = (ms: number) => {
+    if (!Number.isFinite(ms) || ms <= 0) return null;
+    const totalMinutes = Math.round(ms / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${minutes}m`;
+  };
+
+  const formatCountdownMs = (ms: number) => {
+    if (!Number.isFinite(ms)) return null;
+    if (ms <= 0) return 'EXPIRED';
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+  };
+
+  const formatSLA = (sla: any) => {
+    const resolutionTime = sla?.resolutionTime ?? sla?.resolutionHours ?? sla?.hours;
+    const timeUnit = sla?.timeUnit ?? sla?.unit;
+    if (resolutionTime == null || !timeUnit) return null;
+    return `${resolutionTime} ${timeUnit}`;
+  };
+
+  React.useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  React.useEffect(() => {
+    if (!router.isReady) return;
+    if (!queryId) return;
+
+    const fetchTicketAndSLA = async () => {
+      try {
+        const ticket = await api.getTicketById(queryId);
+        setStatus(ticket?.status || 'Open');
+        setExpiryAtMs(ticket?.expiryAt ? new Date(ticket.expiryAt).getTime() : null);
+
+        const estimatedFromTicket = (() => {
+          const createdAt = ticket?.createdAt ? new Date(ticket.createdAt).getTime() : null;
+          const expiryAt = ticket?.expiryAt ? new Date(ticket.expiryAt).getTime() : null;
+          if (!createdAt || !expiryAt) return null;
+          return formatDurationMs(expiryAt - createdAt);
+        })();
+
+        const categoryId =
+          ticket?.categoryId?.id ||
+          ticket?.categoryId ||
+          ticket?.category?.id ||
+          ticket?.category;
+
+        if (!categoryId) {
+          setEstimatedResolution(estimatedFromTicket || 'As per category SLA');
+          return;
+        }
+
+        try {
+          const sla = await api.getCategorySLAByCategoryId(String(categoryId));
+          const formatted = formatSLA(sla);
+          setEstimatedResolution(formatted || estimatedFromTicket || 'As per category SLA');
+        } catch {
+          setEstimatedResolution(estimatedFromTicket || 'As per category SLA');
+        }
+      } catch (error) {
+        setStatus('Open');
+        setEstimatedResolution('As per category SLA');
+        setExpiryAtMs(null);
+        toast.error('Unable to load query details');
+      }
+    };
+
+    fetchTicketAndSLA();
+  }, [router.isReady, queryId]);
+
+  const shouldShowCountdown = !!expiryAtMs && status.toLowerCase() !== 'resolved';
+  const countdownText = shouldShowCountdown && expiryAtMs ? formatCountdownMs(expiryAtMs - now) : null;
+  const estimatedResolutionText = countdownText || estimatedResolution;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(queryId);
@@ -90,14 +168,14 @@ export default function SuccessPage() {
                 <Clock className="w-3.5 h-3.5 text-brand-primary" />
                 <span className="text-[10px] text-text-muted uppercase font-bold">Estimated Resolution</span>
               </div>
-              <p className="text-sm font-bold text-text-main">Within {resolutionTime}</p>
+              <p className="text-sm font-bold text-text-main">{estimatedResolutionText}</p>
             </div>
             <div className="p-3 bg-bg-dark border border-border-subtle rounded-lg">
               <div className="flex items-center space-x-2 mb-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
                 <span className="text-[10px] text-text-muted uppercase font-bold">Status</span>
               </div>
-              <p className="text-sm font-bold text-success uppercase">Open</p>
+              <p className={`text-sm font-bold uppercase ${getStatusClassName(status)}`}>{status}</p>
             </div>
           </div>
         </div>
