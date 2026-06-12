@@ -24,7 +24,7 @@ export default function PublicQueryForm() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
-  const [mobile, setMobile] = useState('');
+  const [mobile, setMobile] = useState('+91 ');
   const [email, setEmail] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
@@ -76,6 +76,11 @@ export default function PublicQueryForm() {
     setIsSubmitting(true);
 
     try {
+      if (mobile !== '+91 ' && mobile.length !== 14) {
+        toast.error('Please enter a valid 10-digit mobile number');
+        return;
+      }
+
       if (!categoryId) {
         toast.error('Please select a category');
         return;
@@ -167,29 +172,28 @@ export default function PublicQueryForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Full Name"
-              placeholder="John Doe"
               icon={<User className="w-4 h-4" />}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
             />
             <Input
               label="Mobile Number"
-              placeholder="+1 (555) 000-0000"
               icon={<Phone className="w-4 h-4" />}
               value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              required
+              onChange={(e) => {
+                let val = e.target.value;
+                if (!val.startsWith('+91 ')) val = '+91 ' + val.replace(/^\+91\s*/, '');
+                const numbersOnly = val.slice(4).replace(/\D/g, '').slice(0, 10);
+                setMobile('+91 ' + numbersOnly);
+              }}
             />
             <div className="md:col-span-2">
               <Input
                 label="Email Address"
-                placeholder="john@example.com"
                 type="email"
                 icon={<Mail className="w-4 h-4" />}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
             </div>
           </div>
@@ -202,7 +206,6 @@ export default function PublicQueryForm() {
                 <input
                   type="text"
                   className="w-full bg-bg-dark border border-border-subtle rounded-lg pl-11 pr-4 py-3 text-text-main placeholder:text-text-muted/50 focus:outline-none focus:border-brand-primary/50 transition-all text-sm"
-                  placeholder="e.g. 101"
                   value={roomNumber}
                   onChange={(e) => setRoomNumber(e.target.value)}
                   required
@@ -260,10 +263,8 @@ export default function PublicQueryForm() {
               <FileText className="absolute left-4 top-4 w-4 h-4 text-text-muted" />
               <textarea
                 className="w-full bg-bg-dark border border-border-subtle rounded-lg pl-11 pr-4 py-3 text-text-main placeholder:text-text-muted/50 focus:outline-none focus:border-brand-primary/50 transition-all min-h-[120px] text-sm"
-                placeholder="Describe your query in detail..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                required
               />
             </div>
           </div>
