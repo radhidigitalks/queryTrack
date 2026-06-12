@@ -133,7 +133,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between text-sm">
+            {/* <div className="flex items-center justify-between text-sm">
               <label className="flex items-center space-x-2 cursor-pointer group">
                 <input type="checkbox" className="w-4 h-4 rounded border-border-subtle bg-bg-dark text-brand-primary focus:ring-brand-primary/50" />
                 <span className="text-text-muted group-hover:text-text-main transition-colors">Keep me signed in</span>
@@ -141,33 +141,12 @@ export default function LoginPage() {
               <Link href="#" className="text-brand-primary hover:text-brand-light transition-colors font-medium">
                 Forgot password?
               </Link>
-            </div>
+            </div> */}
 
             <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign In to Dashboard'}
             </Button>
 
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border-subtle" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-bg-card px-2 text-text-muted">Or login with SSO</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Button type="button" variant="outline" className="w-full space-x-2">
-                <Globe className="w-4 h-4" />
-                <span>Google</span>
-              </Button>
-              <Button type="button" variant="outline" className="w-full space-x-2">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z" />
-                </svg>
-                <span>Microsoft</span>
-              </Button>
-            </div>
           </form>
 
           <p className="text-center mt-8 text-text-muted text-sm">
