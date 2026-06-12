@@ -32,6 +32,8 @@ export default function UserManagementPage() {
   const [search, setSearch] = React.useState('');
   const [deptFilter, setDeptFilter] = React.useState('All Departments');
   const [roleFilter, setRoleFilter] = React.useState('All Roles');
+  const [showFilterPopup, setShowFilterPopup] = React.useState(false);
+  const filterPopupRef = React.useRef<HTMLDivElement>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -64,6 +66,17 @@ export default function UserManagementPage() {
     if (u) {
       setCurrentUser(JSON.parse(u));
     }
+  }, []);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterPopupRef.current && !filterPopupRef.current.contains(event.target as Node)) {
+        setShowFilterPopup(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const openCreateModal = () => {
@@ -191,7 +204,7 @@ export default function UserManagementPage() {
           )}
         </div>
 
-        <Card className="p-4">
+        <Card className="p-4 overflow-visible">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
@@ -204,26 +217,62 @@ export default function UserManagementPage() {
               />
             </div>
 
-            <div className="flex items-center space-x-3 overflow-x-auto pb-2 lg:pb-0">
-              <select
-                className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50"
-                value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
+            <div className="relative flex items-center pb-2 lg:pb-0" ref={filterPopupRef}>
+              <Button
+                size="sm"
+                className="h-8.5"
+                onClick={() => setShowFilterPopup((value) => !value)}
+                title="Open filters"
               >
-                <option value="All Departments">All Departments</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-              <select
-                className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50"
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-              >
-                <option value="All Roles">All Roles</option>
-                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-              <Button size="sm" className="h-[34px]">
                 <Filter className="w-3.5 h-3.5" />
               </Button>
+
+              {showFilterPopup && (
+                <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-2xl z-30">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-text-main">Filters</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterPopup(false)}
+                      className="text-xs font-bold uppercase tracking-wider text-text-muted hover:text-text-main"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                        Department
+                      </label>
+                      <select
+                        className="w-full bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50"
+                        value={deptFilter}
+                        onChange={(e) => setDeptFilter(e.target.value)}
+                      >
+                        <option value="All Departments">All Departments</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                        Role
+                      </label>
+                      <select
+                        className="w-full bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-primary/50"
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                      >
+                        <option value="All Roles">All Roles</option>
+                        {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </Card>

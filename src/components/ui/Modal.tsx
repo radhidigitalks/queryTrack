@@ -31,7 +31,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">{title}</h3>
               <button 
                 onClick={onClose}
-                className="p-1.5 text-text-muted hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 text-text-muted  hover:bg-white/10 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

@@ -104,81 +104,182 @@ export default function CategoriesPage() {
           </Button>
         </div>
 
-        <Card className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
-                  <th className="px-6 py-4 font-bold">Image</th>
-                  <th className="px-6 py-4 font-bold">Name</th>
-                  <th className="px-6 py-4 font-bold">Department</th>
-                  <th className="px-6 py-4 font-bold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {categories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shadow-sm p-1 border border-border-subtle">
-                        <img src={cat.imageUrl || '/logo.webp'} alt="" className="w-full h-full object-contain" />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <Tags className="w-5 h-5 text-brand-primary" />
-                        <span className="font-medium text-text-main">{cat.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <Building2 className="w-4 h-4 text-text-muted" />
-                        <span>{cat.departmentId?.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          className="p-2"
-                          onClick={() => {
-                            setEditingId(cat.id);
-                            const deptId =
-                              cat.departmentId?._id ||
-                              cat.departmentId?.id ||
-                              cat.departmentId;
-                            setFormData({
-                              name: cat.name,
-                              departmentId: deptId ? String(deptId) : ''
-                            });
-                            setImageFile(null);
-                            setImagePreviewUrl(cat.imageUrl || '');
-                            setIsModalOpen(true);
-                          }}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          className="p-2 text-danger"
-                          onClick={() => handleDelete(cat.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {categories.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-text-muted">
-                      No categories found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        {departments.length === 0 && categories.length === 0 && (
+          <Card className="p-12 text-center text-text-muted">
+            No departments or categories found.
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {departments.map((dept) => {
+            const deptCategories = categories.filter(c => {
+              const cDeptId = c.departmentId?._id || c.departmentId?.id || c.departmentId;
+              return String(cDeptId) === String(dept.id);
+            });
+
+            return (
+              <div key={dept.id} className="space-y-3">
+                <div className="flex items-center space-x-2 px-1">
+                  <Building2 className="w-5 h-5 text-brand-primary" />
+                  <h2 className="text-lg font-bold text-text-main">{dept.name}</h2>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary">
+                    {deptCategories.length}
+                  </span>
+                </div>
+                <Card className="p-0 overflow-hidden">
+                  <div className="overflow-auto max-h-[350px]">
+                    <table className="w-full text-left text-sm relative">
+                      <thead className="sticky top-0 z-10">
+                        <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
+                          <th className="px-6 py-4 font-bold w-24">Image</th>
+                          <th className="px-6 py-4 font-bold">Category Name</th>
+                          <th className="px-6 py-4 font-bold text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-subtle">
+                        {deptCategories.map((cat) => (
+                          <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shadow-sm p-1 border border-border-subtle">
+                                <img src={cat.imageUrl || '/logo.webp'} alt="" className="w-full h-full object-contain" />
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 w-full">
+                              <div className="flex items-center space-x-3">
+                                <Tags className="w-5 h-5 text-brand-primary" />
+                                <span className="font-medium text-text-main">{cat.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <Button 
+                                  variant="ghost" 
+                                  className="p-2"
+                                  onClick={() => {
+                                    setEditingId(cat.id);
+                                    const deptId =
+                                      cat.departmentId?._id ||
+                                      cat.departmentId?.id ||
+                                      cat.departmentId;
+                                    setFormData({
+                                      name: cat.name,
+                                      departmentId: deptId ? String(deptId) : ''
+                                    });
+                                    setImageFile(null);
+                                    setImagePreviewUrl(cat.imageUrl || '');
+                                    setIsModalOpen(true);
+                                  }}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  className="p-2 text-danger"
+                                  onClick={() => handleDelete(cat.id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {deptCategories.length === 0 && (
+                          <tr>
+                            <td colSpan={3} className="px-6 py-8 text-center text-text-muted text-xs">
+                              No categories in this department
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            );
+          })}
+
+          {(() => {
+            const unassignedCategories = categories.filter(c => {
+              const cDeptId = c.departmentId?._id || c.departmentId?.id || c.departmentId;
+              return !departments.some(d => String(d.id) === String(cDeptId));
+            });
+
+            if (unassignedCategories.length === 0) return null;
+
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 px-1">
+                  <Building2 className="w-5 h-5 text-text-muted" />
+                  <h2 className="text-lg font-bold text-text-main">Unassigned</h2>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-border-subtle text-text-muted">
+                    {unassignedCategories.length}
+                  </span>
+                </div>
+                <Card className="p-0 overflow-hidden">
+                  <div className="overflow-auto max-h-[350px]">
+                    <table className="w-full text-left text-sm relative">
+                      <thead className="sticky top-0 z-10">
+                        <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
+                          <th className="px-6 py-4 font-bold w-24">Image</th>
+                          <th className="px-6 py-4 font-bold">Category Name</th>
+                          <th className="px-6 py-4 font-bold text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-subtle">
+                        {unassignedCategories.map((cat) => (
+                          <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shadow-sm p-1 border border-border-subtle">
+                                <img src={cat.imageUrl || '/logo.webp'} alt="" className="w-full h-full object-contain" />
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 w-full">
+                              <div className="flex items-center space-x-3">
+                                <Tags className="w-5 h-5 text-brand-primary" />
+                                <span className="font-medium text-text-main">{cat.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <Button 
+                                  variant="ghost" 
+                                  className="p-2"
+                                  onClick={() => {
+                                    setEditingId(cat.id);
+                                    const deptId =
+                                      cat.departmentId?._id ||
+                                      cat.departmentId?.id ||
+                                      cat.departmentId;
+                                    setFormData({
+                                      name: cat.name,
+                                      departmentId: deptId ? String(deptId) : ''
+                                    });
+                                    setImageFile(null);
+                                    setImagePreviewUrl(cat.imageUrl || '');
+                                    setIsModalOpen(true);
+                                  }}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  className="p-2 text-danger"
+                                  onClick={() => handleDelete(cat.id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            );
+          })()}
+        </div>
       </div>
 
       {isModalOpen && (

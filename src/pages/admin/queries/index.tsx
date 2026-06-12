@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { motion } from 'framer-motion';
@@ -29,6 +29,8 @@ export default function TicketsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [statusFilter, setStatusFilter] = useState('All');
   const [deptFilter, setDeptFilter] = useState('All');
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const filterPopupRef = useRef<HTMLDivElement>(null);
 
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -59,6 +61,17 @@ export default function TicketsPage() {
     }, 300);
     return () => clearTimeout(timeout);
   }, [page, searchTerm, statusFilter, deptFilter]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterPopupRef.current && !filterPopupRef.current.contains(event.target as Node)) {
+        setShowFilterPopup(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleExportCSV = async () => {
     try {
@@ -123,7 +136,7 @@ export default function TicketsPage() {
         </div>
 
         {/* Filters Bar */}
-        <Card className="p-4">
+        <Card className="p-4 overflow-visible">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
@@ -136,30 +149,66 @@ export default function TicketsPage() {
               />
             </div>
 
-            <div className="flex items-center space-x-3 overflow-x-auto pb-2 lg:pb-0">
-              <select
-                className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+            <div className="relative flex items-center pb-2 lg:pb-0" ref={filterPopupRef}>
+              <Button
+                size="sm"
+                className="h-8.5"
+                onClick={() => setShowFilterPopup((value) => !value)}
+                title="Open filters"
               >
-                <option value="All">All Statuses</option>
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Resolved">Resolved</option>
-                <option value="Time Expired">Time Expired</option>
-                <option value="Escalated">Escalated</option>
-              </select>
-              <select
-                className="bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50"
-                value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
-              >
-                <option value="All">All Departments</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-              <Button size="sm" className="h-[34px]">
                 <Filter className="w-3.5 h-3.5" />
               </Button>
+
+              {showFilterPopup && (
+                <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-2xl z-30">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-text-main">Filters</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterPopup(false)}
+                      className="text-xs font-bold uppercase tracking-wider text-text-muted hover:text-text-main"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                        Status
+                      </label>
+                      <select
+                        className="w-full bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                      >
+                        <option value="All">All Statuses</option>
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Time Expired">Time Expired</option>
+                        <option value="Escalated">Escalated</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                        Department
+                      </label>
+                      <select
+                        className="w-full bg-bg-dark border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-main focus:outline-none focus:border-brand-primary/50"
+                        value={deptFilter}
+                        onChange={(e) => setDeptFilter(e.target.value)}
+                      >
+                        <option value="All">All Departments</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </Card>

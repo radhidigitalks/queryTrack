@@ -394,9 +394,14 @@ export const api = {
 
   // --- Notifications ---
   getNotifications: async () => {
-    const res = await fetch(`${API_URL}/notifications`, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error('Failed to fetch notifications');
-    return res.json();
+    try {
+      const res = await fetch(`${API_URL}/notifications`, { headers: getAuthHeaders() });
+      if (!res.ok) return [];
+      return res.json();
+    } catch (error) {
+      console.warn('Unable to load notifications:', error);
+      return [];
+    }
   },
   markAllNotificationsRead: async () => {
     const res = await fetch(`${API_URL}/notifications/mark-all-read`, {
