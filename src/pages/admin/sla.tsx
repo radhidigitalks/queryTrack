@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 
 export default function SLAPage() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [slas, setSLAs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,11 +22,13 @@ export default function SLAPage() {
 
   const fetchData = async () => {
     try {
-      const [catRes, slaRes] = await Promise.all([
+      const [catRes, deptRes, slaRes] = await Promise.all([
         api.getCategories(),
+        api.getDepartments(),
         api.getCategorySLAs()
       ]);
       setCategories(catRes);
+      setDepartments(deptRes);
       setSLAs(slaRes);
     } catch (err) {
       console.error(err);
@@ -102,77 +105,164 @@ export default function SLAPage() {
           </Button>
         </div>
 
-        <Card className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
-                  <th className="px-6 py-4 font-bold">Category</th>
-                  <th className="px-6 py-4 font-bold">Resolution Time</th>
-                  <th className="px-6 py-4 font-bold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {categories.map((cat) => {
-                  const sla = getSLAForCategory(cat.id);
-                  return (
-                    <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          <Tags className="w-5 h-5 text-brand-primary" />
-                          <span className="font-medium text-text-main">{cat.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {sla ? (
-                          <div className="flex items-center space-x-2">
-                            <Timer className="w-4 h-4 text-brand-primary" />
-                            <span className="font-medium">{sla.resolutionTime ?? sla.resolutionHours ?? sla.hours} {sla.timeUnit ?? sla.unit}</span>
-                          </div>
-                        ) : (
-                          <span className="text-text-muted italic">Not configured</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button 
-                            className="p-2"
-                            onClick={() => {
-                              setFormData({
-                                categoryId: cat.id,
-                                resolutionTime: sla?.resolutionTime?.toString() || '',
-                                timeUnit: sla?.timeUnit || 'Minutes'
-                              });
-                              setSelectedCategory(cat);
-                              setIsModalOpen(true);
-                            }}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          {sla && (
-                            <Button 
-                              className="p-2 "
-                              onClick={() => handleDelete(cat.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {categories.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-text-muted">
-                      No categories found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="space-y-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+          {departments.map(dept => {
+            const deptCategories = categories.filter(c => (c.departmentId?._id || c.departmentId?.id || c.departmentId) === dept.id);
+            if (deptCategories.length === 0) return null;
+
+            return (
+              <div key={dept.id} className="space-y-4">
+                <h2 className="text-xl font-bold text-brand-primary flex items-center">
+                  <span className="w-2 h-6 bg-brand-primary rounded mr-3"></span>
+                  {dept.name}
+                </h2>
+                <Card className="p-0 overflow-hidden flex flex-col h-[400px]">
+                  <div className="overflow-auto flex-1">
+                    <table className="w-full text-left text-sm relative">
+                      <thead className="sticky top-0 z-10 bg-bg-dark">
+                        <tr className="text-text-muted uppercase tracking-widest border-b border-border-subtle shadow-sm">
+                          <th className="px-6 py-4 font-bold">Category</th>
+                          <th className="px-6 py-4 font-bold">Resolution Time</th>
+                          <th className="px-6 py-4 font-bold text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-subtle">
+                        {deptCategories.map((cat) => {
+                          const sla = getSLAForCategory(cat.id);
+                          return (
+                            <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center space-x-3">
+                                  <Tags className="w-5 h-5 text-brand-primary" />
+                                  <span className="font-medium text-text-main">{cat.name}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                {sla ? (
+                                  <div className="flex items-center space-x-2">
+                                    <Timer className="w-4 h-4 text-brand-primary" />
+                                    <span className="font-medium">{sla.resolutionTime ?? sla.resolutionHours ?? sla.hours} {sla.timeUnit ?? sla.unit}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-text-muted italic">Not configured</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end space-x-2">
+                                  <Button 
+                                    className="p-2"
+                                    onClick={() => {
+                                      setFormData({
+                                        categoryId: cat.id,
+                                        resolutionTime: sla?.resolutionTime?.toString() || '',
+                                        timeUnit: sla?.timeUnit || 'Minutes'
+                                      });
+                                      setSelectedCategory(cat);
+                                      setIsModalOpen(true);
+                                    }}
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </Button>
+                                  {sla && (
+                                    <Button 
+                                      className="p-2"
+                                      onClick={() => handleDelete(cat.id)}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            );
+          })}
+
+          {categories.filter(c => !c.departmentId).length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-text-muted flex items-center">
+                <span className="w-2 h-6 bg-border-subtle rounded mr-3"></span>
+                Unassigned Categories
+              </h2>
+              <Card className="p-0 overflow-hidden flex flex-col h-[400px]">
+                <div className="overflow-auto flex-1">
+                  <table className="w-full text-left text-sm relative">
+                    <thead className="sticky top-0 z-10 bg-bg-dark">
+                      <tr className="text-text-muted uppercase tracking-widest border-b border-border-subtle shadow-sm">
+                        <th className="px-6 py-4 font-bold">Category</th>
+                        <th className="px-6 py-4 font-bold">Resolution Time</th>
+                        <th className="px-6 py-4 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-subtle">
+                      {categories.filter(c => !c.departmentId).map((cat) => {
+                        const sla = getSLAForCategory(cat.id);
+                        return (
+                          <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-3">
+                                <Tags className="w-5 h-5 text-text-muted" />
+                                <span className="font-medium text-text-main">{cat.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {sla ? (
+                                <div className="flex items-center space-x-2">
+                                  <Timer className="w-4 h-4 text-brand-primary" />
+                                  <span className="font-medium">{sla.resolutionTime ?? sla.resolutionHours ?? sla.hours} {sla.timeUnit ?? sla.unit}</span>
+                                </div>
+                              ) : (
+                                <span className="text-text-muted italic">Not configured</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <Button 
+                                  className="p-2"
+                                  onClick={() => {
+                                    setFormData({
+                                      categoryId: cat.id,
+                                      resolutionTime: sla?.resolutionTime?.toString() || '',
+                                      timeUnit: sla?.timeUnit || 'Minutes'
+                                    });
+                                    setSelectedCategory(cat);
+                                    setIsModalOpen(true);
+                                  }}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                {sla && (
+                                  <Button 
+                                    className="p-2"
+                                    onClick={() => handleDelete(cat.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {departments.length === 0 && categories.length === 0 && (
+            <div className="py-12 text-center text-text-muted">
+              No categories found
+            </div>
+          )}
+        </div>
       </div>
 
       {isModalOpen && (

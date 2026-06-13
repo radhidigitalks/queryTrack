@@ -126,31 +126,31 @@ export default function CategoriesPage() {
                     {deptCategories.length}
                   </span>
                 </div>
-                <Card className="p-0 overflow-hidden">
+                <Card className="p-0 overflow-hidden h-[350px]">
                   <div className="overflow-auto max-h-[350px]">
                     <table className="w-full text-left text-sm relative">
                       <thead className="sticky top-0 z-10">
                         <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
-                          <th className="px-6 py-4 font-bold w-24">Image</th>
-                          <th className="px-6 py-4 font-bold">Category Name</th>
-                          <th className="px-6 py-4 font-bold text-right">Actions</th>
+                          <th className="px-6 py-1 font-bold w-24">Image</th>
+                          <th className="px-6 py-1 font-bold">Category Name</th>
+                          <th className="px-6 py-1 font-bold text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle">
                         {deptCategories.map((cat) => (
                           <tr key={cat.id} className="hover:bg-brand-primary/5 transition-colors">
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-1">
                               <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shadow-sm p-1 border border-border-subtle">
                                 <img src={cat.imageUrl || '/logo.webp'} alt="" className="w-full h-full object-contain" />
                               </div>
                             </td>
-                            <td className="px-6 py-4 w-full">
+                            <td className="px-6 py-1 w-full">
                               <div className="flex items-center space-x-3">
                                 <Tags className="w-5 h-5 text-brand-primary" />
                                 <span className="font-medium text-text-main">{cat.name}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-right">
+                            <td className="px-6 py-1 text-right">
                               <div className="flex items-center justify-end space-x-2">
                                 <Button 
                                   className="p-2"
