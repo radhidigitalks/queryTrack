@@ -131,9 +131,9 @@ export default function CategoriesPage() {
                     <table className="w-full text-left text-sm relative">
                       <thead className="sticky top-0 z-10">
                         <tr className="bg-bg-dark text-text-muted uppercase tracking-widest border-b border-border-subtle">
-                          <th className="px-6 py-1 font-bold w-24">Image</th>
-                          <th className="px-6 py-1 font-bold">Category Name</th>
-                          <th className="px-6 py-1 font-bold text-right">Actions</th>
+                          <th className="px-6 py-4 font-bold w-24">Image</th>
+                          <th className="px-6 py-4 font-bold">Category Name</th>
+                          <th className="px-6 py-4 font-bold text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle">
